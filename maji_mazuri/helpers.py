@@ -15,7 +15,7 @@ def display_table(items, headers, columns):
         row = [get_nested_attr(item, col) for col in columns]
         table_data.append(row)
     
-    click.echo(tabulate(table_data, headers=headers, tablefmt="grid"))
+    click.echo(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
 
 def validate_email(ctx, param, value):
     """Basic email validation"""
