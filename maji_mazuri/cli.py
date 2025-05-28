@@ -30,7 +30,7 @@ def add(name, ingredients, price, category):
         click.secho(f" Added cocktail: {name}", bg='green')
     except Exception as e:
         session.rollback()
-        click.echo(f"❌ Error: {str(e)}")
+        click.secho(f"Error: {str(e)}",bg='red')
 
 @cocktail.command()
 def list():
@@ -48,18 +48,18 @@ def list():
 
 @cocktail.command()
 @click.option('--id', prompt='Cocktail ID', type=int, help='ID of the cocktail to update')
-@click.option('--name', prompt='Cocktail Name', type=click.STRING, help='New name of the cocktail')
+@click.option('--name', type=click.STRING, help='New name of the cocktail')
 
-@click.option('--ingredients',prompt='Cocktail Contents', type=click.STRING, help='New list of ingredients')
-@click.option('--price',prompt='Cocktail Price', type=float, help='New price of the cocktail')
-@click.option('--category',prompt='Cocktail Category', type=click.STRING, help='New category of the cocktail')
+@click.option('--ingredients',type=click.STRING, help='New list of ingredients')
+@click.option('--price',type=float, help='New price of the cocktail')
+@click.option('--category',type=click.STRING, help='New category of the cocktail')
 def update(id, name, ingredients, price, category):
     """Update a cocktail by ID"""
     try:
         cocktail = session.get(Cocktail, id)
 
         if not cocktail:
-            click.echo(f"❌ Cocktail with ID {id} not found!")
+            click.secho(f"Cocktail with ID {id} not found!",bg='red')
             return
         
         if name: cocktail.name = name
@@ -72,24 +72,24 @@ def update(id, name, ingredients, price, category):
 
     except Exception as e:
         session.rollback()
-        click.echo(f"❌ Error: {str(e)}")
+        click.secho(f"Error: {str(e)}",bg='red')
 
 @cocktail.command()
 @click.option('--id', prompt='Cocktail ID', type=int, help='ID of the cocktail to delete')
 def delete(id):
     """Delete a cocktail by ID"""
     try:
-        cocktail = session.query(Cocktail).get(id)
+        cocktail = session.get(Cocktail,id)
         if not cocktail:
-            click.echo(f"❌ Cocktail with ID {id} not found!")
+            click.secho(f"Cocktail with ID {id} not found!",bg='red')
             return
         
         session.delete(cocktail)
         session.commit()
-        click.echo(f" Deleted cocktail (ID: {id})")
+        click.secho(f" Deleted cocktail (ID: {id})",bg='green')
     except Exception as e:
         session.rollback()
-        click.echo(f"❌ Error: {str(e)}")
+        click.secho(f"Error: {str(e)}",bg='red')
 
 # ====== CUSTOMER COMMANDS ======
 @cli.group()
@@ -111,7 +111,7 @@ def add(name, email, phone, favorite):
         click.secho(f" Added customer: {name}", bg='green')
     except Exception as e:
         session.rollback()
-        click.echo(f"❌ Error: {str(e)}")
+        click.secho(f"Error: {str(e)}",bg='red')
 
 @customer.command()
 def list():
@@ -129,16 +129,16 @@ def list():
 
 @customer.command()
 @click.option('--id', prompt='Customer ID', type=int, help='ID of the customer to update')
-@click.option('--name',prompt='Customer Name', type=click.STRING, help='New name of the customer')
-@click.option('--email',prompt='Customer Email', type=click.STRING, help='New email of the customer')
-@click.option('--phone',prompt='Customer Phone', type=click.STRING, help='New phone number of the customer')
-@click.option('--favorite',prompt='Customer favorite', type=click.STRING, help="New favorite drink")
+@click.option('--name', type=click.STRING, help='New name of the customer')
+@click.option('--email', type=click.STRING, help='New email of the customer')
+@click.option('--phone',type=click.STRING, help='New phone number of the customer')
+@click.option('--favorite', type=click.STRING, help="New favorite drink")
 def update(id, name, email, phone, favorite):
     """Update a customer by ID"""
     try:
         customer = session.get(Customer,id)
         if not customer:
-            click.echo(f"❌ Customer with ID {id} not found!")
+            click.secho(f"Customer with ID {id} not found!",bg='red')
             return
         
         if name: customer.name = name
@@ -150,16 +150,16 @@ def update(id, name, email, phone, favorite):
         click.secho(f"Updated customer (ID: {id})", bg='green')
     except Exception as e:
         session.rollback()
-        click.echo(f"❌ Error: {str(e)}")
+        click.secho(f"Error: {str(e)}",bg='red')
 
 @customer.command()
 @click.option('--id', prompt='Customer ID', type=int, help='ID of the customer to delete')
 def delete(id):
     """Delete a customer by ID"""
     try:
-        customer = session.query(Customer).get(id)
+        customer = session.get(Customer,id)
         if not customer:
-            click.echo(f"❌ Customer with ID {id} not found!")
+            click.secho(f"Customer with ID {id} not found!",bg='red')
             return
         
         session.delete(customer)
@@ -167,7 +167,7 @@ def delete(id):
         click.secho(f" Deleted customer (ID: {id})",bg='green')
     except Exception as e:
         session.rollback()
-        click.echo(f"❌ Error: {str(e)}")
+        click.secho(f"Error: {str(e)}",bg='red')
 
 # ====== ORDER COMMANDS ======
 @cli.group()
@@ -218,14 +218,14 @@ def list():
 @click.option('--id', prompt='Order ID', type=int, help='ID of the order to update')
 @click.option('--customer-id', type=int, help='New customer ID')
 @click.option('--cocktail-id', type=int, help='New cocktail ID')
-@click.option('--quantity',prompt='Quantity', type=int, help='New quantity')
-@click.option('--status', prompt='Status', type=click.STRING,help='New status (pending/completed/cancelled)')
+@click.option('--quantity',type=int, help='New quantity')
+@click.option('--status',type=click.STRING,help='New status (pending/completed/cancelled)')
 def update(id, customer_id, cocktail_id, quantity, status):
     """Update an order by ID"""
     try:
         order = session.get(Order, id)
         if not order:
-            click.echo(f"❌ Order with ID {id} not found!")
+            click.secho(f"Order with ID {id} not found!",bg='red')
             return
         
         if customer_id: order.customer_id = customer_id
@@ -238,7 +238,7 @@ def update(id, customer_id, cocktail_id, quantity, status):
 
     except Exception as e:
         session.rollback()
-        click.echo(f"❌ Error: {str(e)}")
+        click.secho(f"Error: {str(e)}",bg='red')
 
 @order.command()
 @click.option('--id', prompt='Order ID', type=int, help='ID of the order to delete')
@@ -247,7 +247,7 @@ def delete(id):
     try:
         order = session.get(Order, id)
         if not order:
-            click.echo(f"❌ Order with ID {id} not found!")
+            click.secho(f"Order with ID {id} not found!",bg='red')
             return
         
         session.delete(order)
@@ -255,7 +255,7 @@ def delete(id):
         click.secho(f" Deleted order (ID: {id})",bg='green')
     except Exception as e:
         session.rollback()
-        click.echo(f"❌ Error: {str(e)}")
+        click.secho(f"Error: {str(e)}",bg='red')
 
 if __name__ == "__main__":
     cli()

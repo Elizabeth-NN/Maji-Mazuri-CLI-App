@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
+import click
 
 Base = declarative_base()
 
@@ -58,3 +59,4 @@ Session = sessionmaker(bind=engine)
 def init_db():
     """Initialize the database"""
     Base.metadata.create_all(engine)
+    click.secho("\nmaji_mazuri db created successfully", bg='green')
