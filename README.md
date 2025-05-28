@@ -8,6 +8,7 @@ A customer can have many cocktail orders and a single cocktail can have many ord
 The orders table acts as a bridge table between customer and cocktail.
 
 ## file structure
+```
 .
 ├── Pipfile
 ├── Pipfile.lock
@@ -21,6 +22,7 @@ The orders table acts as a bridge table between customer and cocktail.
 │   ├── helpers.py
 │   └── models.py
 └── maji_mazuri.db
+```
 
 
 
