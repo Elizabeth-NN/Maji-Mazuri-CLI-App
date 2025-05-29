@@ -1,4 +1,6 @@
 import click
+from sqlalchemy import or_, and_
+from sqlalchemy import func
 from models import Session, Cocktail, Customer, Order
 from helpers import display_table
 from datetime import datetime
@@ -91,6 +93,25 @@ def delete(id):
         session.rollback()
         click.secho(f"Error: {str(e)}",bg='red')
 
+
+@cocktail.command()
+@click.option('--name', help='Search by cocktail name')
+@click.option('--category', help='Filter by category')
+@click.option('--max-price', type=float, help='Maximum price')
+def search(name, category, max_price):
+    """Search/filter cocktails"""
+    query = session.query(Cocktail)
+    if name:
+        query = query.filter(Cocktail.name.ilike(f'%{name}%'))
+    if category:
+        query = query.filter(Cocktail.category.ilike(f'%{category}%'))
+    if max_price:
+        query = query.filter(Cocktail.price <= max_price)
+    
+    cocktails = query.all()
+    display_table(cocktails, headers=["ID", "Name", "Price", "Category"], columns=["id", "name", "price", "category"])
+
+
 # ====== CUSTOMER COMMANDS ======
 @cli.group()
 def customer():
@@ -169,6 +190,23 @@ def delete(id):
         session.rollback()
         click.secho(f"Error: {str(e)}",bg='red')
 
+@cli.command()
+def top_customers():
+    """Show top customers by orders made"""
+    try:
+        top = session.query(
+            Customer.name,
+            func.count(Order.id).label('order_count')
+        ).join(Order).group_by(Customer.id).order_by(func.count(Order.id).desc()).limit(5).all()
+        
+        click.secho(" Top 5 Customers:  ",bg='blue', bold=True)
+        for i, (name, count) in enumerate(top, 1):
+            click.secho(f"{i}. {name}: {count} orders",fg='blue')
+    except Exception as e:
+        click.secho(f"Error: {str(e)}", fg='red')
+        session.rollback()
+    
+
 # ====== ORDER COMMANDS ======
 @cli.group()
 def order():
@@ -186,10 +224,10 @@ def add(customer_id, cocktail_id, quantity):
         cocktail = session.get(Cocktail,cocktail_id)
         
         if not customer:
-            click.echo(f"❌ No customer found with ID {customer_id}")
+            click.secho(f"No customer found with ID {customer_id}",bg='red')
             return
         if not cocktail:
-            click.echo(f"❌ No cocktail found with ID {cocktail_id}")
+            click.secho(f"No cocktail found with ID {cocktail_id}",bg='red')
             return
             
         order = Order(customer_id=customer_id, cocktail_id=cocktail_id, quantity=quantity)
@@ -198,7 +236,7 @@ def add(customer_id, cocktail_id, quantity):
         click.secho(f" Added order: {customer.name} ordered {quantity}x {cocktail.name}", bg='green')
     except Exception as e:
         session.rollback()
-        click.echo(f"❌ Error: {str(e)}")
+        click.secho(f"Error: {str(e)}",bg='red')
 
 @order.command()
 def list():
@@ -257,5 +295,50 @@ def delete(id):
         session.rollback()
         click.secho(f"Error: {str(e)}",bg='red')
 
+
+@order.command()
+@click.option('--id', prompt='Order ID', type=int)
+def complete(id):
+    """Mark an order as completed"""
+    order = session.get(Order, id)
+    if order:
+        order.status = 'completed'
+        order.completed_at = datetime.now()
+        session.commit()
+        click.secho(f"Order {id} marked as completed!", bg='green')
+    else:
+        click.secho(f"Order {id} not found!", bg='red')
+
+@cli.command()
+def status():
+    """Show system status"""
+    cocktail_count = session.query(Cocktail).count()
+    customer_count = session.query(Customer).count()
+    pending_orders = session.query(Order).filter_by(status='pending').count()
+    
+    click.secho(" SYSTEM STATUS: ",bg='blue', bold=True)
+    click.secho(f"Cocktails in menu: {cocktail_count}",fg='blue')
+    click.secho(f"Registered customers: {customer_count}",fg='blue')
+    click.secho(f"Pending orders: {pending_orders}",fg='blue')
+@cli.command()
+def total_revenue():
+    """Calculate total revenue from completed orders"""
+    try:
+        # Calculate sum of (price * quantity) for all completed orders
+        total = session.query(
+            func.sum(Cocktail.price * Order.quantity)
+        ).join(Order.cocktail).filter(
+            Order.status == 'completed'
+        ).scalar()
+        
+        if total is None:
+            click.secho("No completed orders found", fg='yellow')
+            return
+            
+        click.secho(f"  Total Revenue: KES {total:.2f} ", bg='green', bold=True)
+        
+    except Exception as e:
+        click.secho(f"Error calculating revenue: {str(e)}", fg='red')
+        session.rollback()
 if __name__ == "__main__":
     cli()
