@@ -309,6 +309,46 @@ def complete(id):
     else:
         click.secho(f"Order {id} not found!", bg='red')
 
+@order.command()
+@click.option('--customer', help='Search by customer name (partial match)')
+@click.option('--cocktail', help='Search by cocktail name (partial match)')
+@click.option('--status', help='Filter by order status')
+@click.option('--limit', type=int, default=20, help='Limit number of results')
+def search(customer, cocktail, status, limit):
+    """Search orders by customer name, cocktail name, or status"""
+    try:
+        query = session.query(Order).join(Customer).join(Cocktail)
+        
+        filters = []
+        if customer:
+            filters.append(Customer.name.ilike(f'%{customer}%'))
+        if cocktail:
+            filters.append(Cocktail.name.ilike(f'%{cocktail}%'))
+        if status:
+            filters.append(Order.status.ilike(f'%{status}%'))
+            
+        if filters:
+            query = query.filter(and_(*filters))
+            
+        
+        orders = query.limit(limit).all()
+        
+        if not orders:
+            click.secho("No orders found matching your criteria", bg='red',bold=True)
+            return
+        click.secho(f" Found {len(orders)} orders  ", bg='green',bold=True)   
+        display_table(
+            orders,
+            headers=["ID", "Customer", "Cocktail", "Quantity", "Status"],
+            columns=["id", "customer.name", "cocktail.name", "quantity", "status"]
+        )
+        
+        
+        
+    except Exception as e:
+        session.rollback()
+        click.secho(f"Error searching orders: {str(e)}", bg='red')
+
 @cli.command()
 def status():
     """Show system status"""
