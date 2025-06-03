@@ -1,6 +1,6 @@
 
-from models import init_db
-from cli import cli
+from maji_mazuri.models import init_db
+
 
 # Initialize database 
 init_db()

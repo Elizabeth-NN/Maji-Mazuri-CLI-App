@@ -9,8 +9,9 @@ session = Session()
 
 @click.group()
 def cli():
-    """Maji-Mazuri Cocktail App - Manage cocktails, customers, and orders"""
+    """Welcome to Maji-Mazuri Cocktail App - Manage cocktails, customers, and orders"""
     pass
+
 
 # ====== COCKTAIL COMMANDS ======
 @cli.group()
@@ -30,6 +31,7 @@ def add(name, ingredients, price, category):
         session.add(cocktail)
         session.commit()
         click.secho(f" Added cocktail: {name}", bg='green')
+
     except Exception as e:
         session.rollback()
         click.secho(f"Error: {str(e)}",bg='red')
@@ -39,7 +41,7 @@ def list():
     """List all cocktails"""
     cocktails = session.query(Cocktail).all()
     if not cocktails:
-        click.echo("No cocktails found")
+        click.secho("No cocktails found",bg='red')
         return
     
     display_table(
@@ -382,3 +384,6 @@ def total_revenue():
         session.rollback()
 if __name__ == "__main__":
     cli()
+
+
+
